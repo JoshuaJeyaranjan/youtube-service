@@ -36,6 +36,18 @@ app.get("/api/videos", async (req, res) => {
   res.json(videos);
 });
 
+// GET videos for a specific category
+app.get("/api/videos/:category", async (req, res) => {
+  const { category } = req.params;
+  const videos = await readVideos();
+
+  if (!videos[category]) {
+    return res.status(404).json({ error: "Category not found" });
+  }
+
+  res.json(videos[category]);
+});
+
 // POST new video
 app.post("/api/videos/:category", async (req, res) => {
   const { category } = req.params;
