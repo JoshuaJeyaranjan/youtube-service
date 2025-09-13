@@ -30,7 +30,11 @@ const writeVideos = async (videos) => {
   }
 };
 
-// GET all videos
+/* --------------------
+   VIDEO ROUTES
+-------------------- */
+
+// GET all videos (all categories)
 app.get("/api/videos", async (req, res) => {
   const videos = await readVideos();
   res.json(videos);
@@ -48,7 +52,7 @@ app.get("/api/videos/:category", async (req, res) => {
   res.json(videos[category]);
 });
 
-// POST new video
+// POST new video to category
 app.post("/api/videos/:category", async (req, res) => {
   const { category } = req.params;
   const { title, description, url } = req.body;
@@ -80,6 +84,49 @@ app.delete("/api/videos/:category/:index", async (req, res) => {
 
   res.json({ ok: true, videos: videos[category] });
 });
+
+/* --------------------
+   CATEGORY ROUTES
+-------------------- */
+
+// CREATE new category
+app.post("/api/categories", async (req, res) => {
+  const { name } = req.body;
+  if (!name) return res.status(400).json({ error: "Category name is required" });
+
+  const videos = await readVideos();
+  if (videos[name]) {
+    return res.status(400).json({ error: "Category already exists" });
+  }
+
+  videos[name] = [];
+  await writeVideos(videos);
+
+  res.json({ ok: true, categories: Object.keys(videos) });
+});
+
+// DELETE category
+app.delete("/api/categories/:name", async (req, res) => {
+  const { name } = req.params;
+  const videos = await readVideos();
+
+  if (!videos[name]) {
+    return res.status(404).json({ error: "Category not found" });
+  }
+
+  delete videos[name];
+  await writeVideos(videos);
+
+  res.json({ ok: true, categories: Object.keys(videos) });
+});
+
+// GET all categories
+app.get("/api/categories", async (req, res) => {
+  const videos = await readVideos();
+  res.json(Object.keys(videos));
+});
+
+/* -------------------- */
 
 app.listen(PORT, () => {
   console.log(`YouTube service running on port ${PORT}`);
