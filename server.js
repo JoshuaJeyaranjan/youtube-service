@@ -157,7 +157,11 @@ app.delete("/api/categories/:name", async (req, res) => {
 // GET all categories
 app.get("/api/categories", async (req, res) => {
   const videos = await readVideos();
-  res.json(Object.keys(videos));
+  const categories = Object.keys(videos).map((cat) => ({
+    name: cat,
+    categoryThumbnail: videos[cat].categoryThumbnail || "",
+  }));
+  res.json(categories);
 });
 
 // --------------------
