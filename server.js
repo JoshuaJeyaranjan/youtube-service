@@ -10,7 +10,9 @@ const DATA_FILE = "./videos.json";
 app.use(cors());
 app.use(bodyParser.json());
 
-// Helper: read JSON
+// --------------------
+// Helpers
+// --------------------
 const readVideos = async () => {
   try {
     const data = await fs.readFile(DATA_FILE, "utf-8");
@@ -21,7 +23,6 @@ const readVideos = async () => {
   }
 };
 
-// Helper: write JSON
 const writeVideos = async (videos) => {
   try {
     await fs.writeFile(DATA_FILE, JSON.stringify(videos, null, 2), "utf-8");
@@ -30,14 +31,14 @@ const writeVideos = async (videos) => {
   }
 };
 
-/* --------------------
-   VIDEO ROUTES
--------------------- */
+// --------------------
+// VIDEO ROUTES
+// --------------------
 
 // GET all videos (all categories)
 app.get("/api/videos", async (req, res) => {
   const videos = await readVideos();
-  res.json(videos);
+  res.json(videos); // each category: { categoryThumbnail, videos: [] }
 });
 
 // GET videos for a specific category
@@ -49,25 +50,46 @@ app.get("/api/videos/:category", async (req, res) => {
     return res.status(404).json({ error: "Category not found" });
   }
 
-  res.json(videos[category]);
+  res.json(videos[category].videos);
 });
 
 // POST new video to category
 app.post("/api/videos/:category", async (req, res) => {
   const { category } = req.params;
-  const { title, description, url } = req.body;
+  const { title, description, url, thumbnail } = req.body;
 
   if (!title || !url) {
     return res.status(400).json({ error: "Title and URL are required" });
   }
 
   const videos = await readVideos();
-  if (!videos[category]) videos[category] = [];
+  if (!videos[category]) videos[category] = { categoryThumbnail: "", videos: [] };
 
-  videos[category].push({ title, description: description || "", url });
+  const videoData = { title, description: description || "", url };
+  if (thumbnail) videoData.thumbnail = thumbnail;
+
+  videos[category].videos.push(videoData);
   await writeVideos(videos);
 
-  res.json({ ok: true, videos: videos[category] });
+  res.json({ ok: true, videos: videos[category].videos });
+});
+
+// PATCH video thumbnail
+app.patch("/api/videos/:category/:index/thumbnail", async (req, res) => {
+  const { category, index } = req.params;
+  const { thumbnail } = req.body;
+
+  if (!thumbnail) return res.status(400).json({ error: "Thumbnail URL is required" });
+
+  const videos = await readVideos();
+  if (!videos[category] || !videos[category].videos[index]) {
+    return res.status(404).json({ error: "Video not found" });
+  }
+
+  videos[category].videos[index].thumbnail = thumbnail;
+  await writeVideos(videos);
+
+  res.json({ ok: true, videos: videos[category].videos });
 });
 
 // DELETE video by index
@@ -75,19 +97,19 @@ app.delete("/api/videos/:category/:index", async (req, res) => {
   const { category, index } = req.params;
   const videos = await readVideos();
 
-  if (!videos[category] || !videos[category][index]) {
+  if (!videos[category] || !videos[category].videos[index]) {
     return res.status(404).json({ error: "Video not found" });
   }
 
-  videos[category].splice(index, 1);
+  videos[category].videos.splice(index, 1);
   await writeVideos(videos);
 
-  res.json({ ok: true, videos: videos[category] });
+  res.json({ ok: true, videos: videos[category].videos });
 });
 
-/* --------------------
-   CATEGORY ROUTES
--------------------- */
+// --------------------
+// CATEGORY ROUTES
+// --------------------
 
 // CREATE new category
 app.post("/api/categories", async (req, res) => {
@@ -95,14 +117,28 @@ app.post("/api/categories", async (req, res) => {
   if (!name) return res.status(400).json({ error: "Category name is required" });
 
   const videos = await readVideos();
-  if (videos[name]) {
-    return res.status(400).json({ error: "Category already exists" });
-  }
+  if (videos[name]) return res.status(400).json({ error: "Category already exists" });
 
-  videos[name] = [];
+  videos[name] = { categoryThumbnail: "", videos: [] };
   await writeVideos(videos);
 
   res.json({ ok: true, categories: Object.keys(videos) });
+});
+
+// PATCH category thumbnail
+app.patch("/api/categories/:name/thumbnail", async (req, res) => {
+  const { name } = req.params;
+  const { thumbnail } = req.body;
+
+  if (!thumbnail) return res.status(400).json({ error: "Thumbnail URL is required" });
+
+  const videos = await readVideos();
+  if (!videos[name]) return res.status(404).json({ error: "Category not found" });
+
+  videos[name].categoryThumbnail = thumbnail;
+  await writeVideos(videos);
+
+  res.json({ ok: true, thumbnail });
 });
 
 // DELETE category
@@ -110,9 +146,7 @@ app.delete("/api/categories/:name", async (req, res) => {
   const { name } = req.params;
   const videos = await readVideos();
 
-  if (!videos[name]) {
-    return res.status(404).json({ error: "Category not found" });
-  }
+  if (!videos[name]) return res.status(404).json({ error: "Category not found" });
 
   delete videos[name];
   await writeVideos(videos);
@@ -126,8 +160,7 @@ app.get("/api/categories", async (req, res) => {
   res.json(Object.keys(videos));
 });
 
-/* -------------------- */
-
+// --------------------
 app.listen(PORT, () => {
   console.log(`YouTube service running on port ${PORT}`);
 });
