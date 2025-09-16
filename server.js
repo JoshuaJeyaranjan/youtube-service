@@ -35,10 +35,10 @@ const writeVideos = async (videos) => {
 // VIDEO ROUTES
 // --------------------
 
-// GET all videos (all categories)
+// GET all videos (by category)
 app.get("/api/videos", async (req, res) => {
   const videos = await readVideos();
-  res.json(videos); // each category: { categoryThumbnail, videos: [] }
+  res.json(videos);
 });
 
 // GET videos for a specific category
@@ -46,47 +46,21 @@ app.get("/api/videos/:category", async (req, res) => {
   const { category } = req.params;
   const videos = await readVideos();
 
-  if (!videos[category]) {
-    return res.status(404).json({ error: "Category not found" });
-  }
-
+  if (!videos[category]) return res.status(404).json({ error: "Category not found" });
   res.json(videos[category].videos);
 });
 
-// POST new video to category
+// POST new video to a category
 app.post("/api/videos/:category", async (req, res) => {
   const { category } = req.params;
-  const { title, description, url, thumbnail } = req.body;
+  const { title, description, url } = req.body;
 
-  if (!title || !url) {
-    return res.status(400).json({ error: "Title and URL are required" });
-  }
+  if (!title || !url) return res.status(400).json({ error: "Title and URL are required" });
 
   const videos = await readVideos();
   if (!videos[category]) videos[category] = { categoryThumbnail: "", videos: [] };
 
-  const videoData = { title, description: description || "", url };
-  if (thumbnail) videoData.thumbnail = thumbnail;
-
-  videos[category].videos.push(videoData);
-  await writeVideos(videos);
-
-  res.json({ ok: true, videos: videos[category].videos });
-});
-
-// PATCH video thumbnail
-app.patch("/api/videos/:category/:index/thumbnail", async (req, res) => {
-  const { category, index } = req.params;
-  const { thumbnail } = req.body;
-
-  if (!thumbnail) return res.status(400).json({ error: "Thumbnail URL is required" });
-
-  const videos = await readVideos();
-  if (!videos[category] || !videos[category].videos[index]) {
-    return res.status(404).json({ error: "Video not found" });
-  }
-
-  videos[category].videos[index].thumbnail = thumbnail;
+  videos[category].videos.push({ title, description: description || "", url });
   await writeVideos(videos);
 
   res.json({ ok: true, videos: videos[category].videos });
@@ -110,6 +84,16 @@ app.delete("/api/videos/:category/:index", async (req, res) => {
 // --------------------
 // CATEGORY ROUTES
 // --------------------
+
+// GET all categories
+app.get("/api/categories", async (req, res) => {
+  const videos = await readVideos();
+  const categories = Object.keys(videos).map((cat) => ({
+    name: cat,
+    categoryThumbnail: videos[cat].categoryThumbnail || "",
+  }));
+  res.json(categories);
+});
 
 // CREATE new category
 app.post("/api/categories", async (req, res) => {
@@ -152,16 +136,6 @@ app.delete("/api/categories/:name", async (req, res) => {
   await writeVideos(videos);
 
   res.json({ ok: true, categories: Object.keys(videos) });
-});
-
-// GET all categories
-app.get("/api/categories", async (req, res) => {
-  const videos = await readVideos();
-  const categories = Object.keys(videos).map((cat) => ({
-    name: cat,
-    categoryThumbnail: videos[cat].categoryThumbnail || "",
-  }));
-  res.json(categories);
 });
 
 // --------------------
