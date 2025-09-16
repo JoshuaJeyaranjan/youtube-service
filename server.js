@@ -41,13 +41,14 @@ app.get("/api/videos", async (req, res) => {
   res.json(videos);
 });
 
-// GET videos for a specific category
+
+// GET all videos for a category
 app.get("/api/videos/:category", async (req, res) => {
   const { category } = req.params;
-  const videos = await readVideos();
+  const videosData = await readVideos();
 
-  if (!videos[category]) return res.status(404).json({ error: "Category not found" });
-  res.json(videos[category].videos);
+  console.log(`[GET] Serving videos for category "${category}"`);
+  res.json(videosData[category] || { videos: [] });
 });
 
 // POST new video to a category
@@ -55,11 +56,12 @@ app.post("/api/videos/:category", async (req, res) => {
   const { category } = req.params;
   const { title, description, url, thumbnail } = req.body;
 
-  if (!title || !url) return res.status(400).json({ error: "Title and URL are required" });
+  console.log(`[POST] Incoming new video for "${category}":`, req.body);
 
   const videosData = await readVideos();
 
   if (!videosData[category]) {
+    console.warn(`[POST] Category "${category}" not found in videos.json`);
     return res.status(404).json({ error: "Category does not exist" });
   }
 
@@ -69,9 +71,9 @@ app.post("/api/videos/:category", async (req, res) => {
   videosData[category].videos.push(newVideo);
   await writeVideos(videosData);
 
+  console.log(`[POST] Updated videos.json after adding:`, JSON.stringify(videosData, null, 2));
   res.json({ ok: true, videos: videosData[category].videos });
 });
-
 // DELETE video by index
 app.delete("/api/videos/:category/:index", async (req, res) => {
   const { category, index } = req.params;
