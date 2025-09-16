@@ -1,34 +1,34 @@
 {
   "landscape": {
-    "categoryThumbnail": "https://mycdn.com/photoAssets/landscape-category.jpg",
+    "categoryThumbnail": "https://vuzffkcigrlzarvkoqji.supabase.co/storage/v1/object/public/photos-derived/medium/1757639196537-l1aa5t-IMG_3654.webp",
     "videos": [
       {
         "title": "Sunset Mountains",
         "description": "A serene sunset over the mountains.",
         "url": "https://www.youtube.com/watch?v=DTGNlk2cXa0&ab_channel=PepijnJanssen",
-        "thumbnail": "https://mycdn.com/photoAssets/landscape-sunset.jpg"
+        "thumbnail": ""
       }
     ]
   },
   "drone": {
-    "categoryThumbnail": "https://mycdn.com/photoAssets/drone-category.jpg",
+    "categoryThumbnail": "https://vuzffkcigrlzarvkoqji.supabase.co/storage/v1/object/public/photos-derived/medium/1757658182105-thkvpr-IMG_0740.webp",
     "videos": [
       {
         "title": "City Skyline",
         "description": "Drone flyover of city buildings.",
         "url": "https://www.youtube.com/watch?v=kcfs1-ryKWE&ab_channel=JoshuaTurner",
-        "thumbnail": "https://mycdn.com/photoAssets/drone-city.jpg"
+        "thumbnail": "https://vuzffkcigrlzarvkoqji.supabase.co/storage/v1/object/public/photos-derived/medium/1757658182105-thkvpr-IMG_0740.webp"
       }
     ]
   },
   "shorts": {
-    "categoryThumbnail": "https://mycdn.com/photoAssets/shorts-category.jpg",
+    "categoryThumbnail": "https://vuzffkcigrlzarvkoqji.supabase.co/storage/v1/object/public/photos-derived/medium/1758043612700-rkk5vv-IMG_8692.webp",
     "videos": [
       {
         "title": "Time Lapse",
         "description": "Quick urban time-lapse.",
         "url": "https://www.youtube.com/shorts/hQceuMUomks",
-        "thumbnail": "https://mycdn.com/photoAssets/shorts-timelapse.jpg"
+        "thumbnail": "https://vuzffkcigrlzarvkoqji.supabase.co/storage/v1/object/public/photos-derived/medium/1758043612700-rkk5vv-IMG_8692.webp"
       }
     ]
   }
