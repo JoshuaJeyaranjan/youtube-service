@@ -53,17 +53,23 @@ app.get("/api/videos/:category", async (req, res) => {
 // POST new video to a category
 app.post("/api/videos/:category", async (req, res) => {
   const { category } = req.params;
-  const { title, description, url } = req.body;
+  const { title, description, url, thumbnail } = req.body;
 
   if (!title || !url) return res.status(400).json({ error: "Title and URL are required" });
 
-  const videos = await readVideos();
-  if (!videos[category]) videos[category] = { categoryThumbnail: "", videos: [] };
+  const videosData = await readVideos();
 
-  videos[category].videos.push({ title, description: description || "", url });
-  await writeVideos(videos);
+  if (!videosData[category]) {
+    return res.status(404).json({ error: "Category does not exist" });
+  }
 
-  res.json({ ok: true, videos: videos[category].videos });
+  const newVideo = { title, description: description || "", url };
+  if (thumbnail) newVideo.thumbnail = thumbnail;
+
+  videosData[category].videos.push(newVideo);
+  await writeVideos(videosData);
+
+  res.json({ ok: true, videos: videosData[category].videos });
 });
 
 // DELETE video by index
